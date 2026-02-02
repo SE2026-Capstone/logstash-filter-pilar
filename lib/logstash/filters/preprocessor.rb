@@ -162,7 +162,7 @@ class Preprocessor
 
     # Split log event into tokens
     tokens, preprocessed_dynamic_token = token_splitter(log_event)
-    all_dynamic_tokens.merge(preprocessed_dynamic_token) if preprocessed_dynamic_token
+    all_dynamic_tokens.merge!(preprocessed_dynamic_token) if preprocessed_dynamic_token
 
     # If no tokens were returned, do not parse the logs and return
     return if tokens.nil?
@@ -176,7 +176,7 @@ class Preprocessor
       # there should be no conflicts here as long as all preprocess_known_dynamic_tokens have
       # the format "[global/manual]_preprocessed_dynamic_token_{i}" and all the dynamic tokens have the
       # format "dynamic_token_{i}"
-      all_dynamic_tokens.merge(dynamic_tokens) if dynamic_tokens
+      all_dynamic_tokens.merge!(dynamic_tokens) if dynamic_tokens
     end
 
     # Update gram_dict
