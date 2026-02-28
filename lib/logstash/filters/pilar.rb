@@ -84,11 +84,15 @@ module LogStash
           )
 
           if processed_log
-            template_string, dynamic_tokens = processed_log
+            template_string, dynamic_tokens, header_fields = processed_log
 
             # Set the new values in the returned event
             event.set('template_string', template_string)
             event.set('dynamic_tokens', dynamic_tokens)
+            # Emit each logformat header field (e.g. date, time) as log_{name}
+            # so the engine can read the log's actual timestamp rather than
+            # relying on @timestamp (which is Logstash's processing time).
+            header_fields&.each { |k, v| event.set("log_#{k}", v) }
           else
             event.set('dynamic_tokens', nil)
             event.set('template_string', nil)

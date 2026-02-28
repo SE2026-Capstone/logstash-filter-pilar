@@ -125,12 +125,17 @@ class Preprocessor
 
     # If not match found, return nil
     if match.nil?
-      [nil, nil]
+      [nil, nil, {}]
     else
       # Gets content and return
       content = match[@content_specifier]
       line, preprocessed_dynamic_token = preprocess_known_dynamic_tokens(content, @regexes)
-      [line.strip.split, preprocessed_dynamic_token]
+      # Capture all logformat groups except the content_specifier so they can
+      # be emitted as structured event fields (e.g. log_date, log_time).
+      header_fields = match.names
+        .reject { |n| n == @content_specifier }
+        .each_with_object({}) { |n, h| h[n] = match[n] }
+      [line.strip.split, preprocessed_dynamic_token, header_fields]
     end
   end
 
@@ -161,7 +166,7 @@ class Preprocessor
     all_dynamic_tokens = {}
 
     # Split log event into tokens
-    tokens, preprocessed_dynamic_token = token_splitter(log_event)
+    tokens, preprocessed_dynamic_token, header_fields = token_splitter(log_event)
     all_dynamic_tokens.merge!(preprocessed_dynamic_token) if preprocessed_dynamic_token
 
     # If no tokens were returned, do not parse the logs and return
@@ -182,6 +187,6 @@ class Preprocessor
     # Update gram_dict
     @gram_dict.upload_grams(tokens)
 
-    [template_string, all_dynamic_tokens]
+    [template_string, all_dynamic_tokens, header_fields]
   end
 end
